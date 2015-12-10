@@ -44,6 +44,8 @@ CRC_HandleTypeDef hcrc;
 
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim10;
+
 UART_HandleTypeDef huart2;
 
 osThreadId defaultTaskHandle;
@@ -58,6 +60,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CRC_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM10_Init(void);
 static void MX_USART2_UART_Init(void);
 void StartDefaultTask(void const * argument);
 
@@ -89,6 +92,7 @@ int main(void)
   MX_GPIO_Init();
   MX_CRC_Init();
   MX_I2C1_Init();
+  MX_TIM10_Init();
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
@@ -109,7 +113,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 2048);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -199,6 +203,29 @@ void MX_I2C1_Init(void)
   hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
   hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLED;
   HAL_I2C_Init(&hi2c1);
+
+}
+
+/* TIM10 init function */
+void MX_TIM10_Init(void)
+{
+
+  TIM_OC_InitTypeDef sConfigOC;
+
+  htim10.Instance = TIM10;
+  htim10.Init.Prescaler = 0;
+  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim10.Init.Period = 0;
+  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  HAL_TIM_Base_Init(&htim10);
+
+  HAL_TIM_OC_Init(&htim10);
+
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  HAL_TIM_OC_ConfigChannel(&htim10, &sConfigOC, TIM_CHANNEL_1);
 
 }
 
