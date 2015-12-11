@@ -487,6 +487,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\fusion_task.c</FilePath>
             </File>
+            <File>
+              <FileName>fusion_drivers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\fusion_drivers.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
