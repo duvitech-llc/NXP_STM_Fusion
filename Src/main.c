@@ -318,9 +318,7 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_Delay(__IO uint32_t Delay){
-		osDelay(Delay);
-}
+
 
 /* USER CODE END 4 */
 

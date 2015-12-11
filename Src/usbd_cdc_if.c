@@ -254,7 +254,11 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-  return (USBD_OK);
+	if(hUsbDevice_0 != NULL){
+		return (USBD_OK);
+	}
+	
+	return (USBD_FAIL);
   /* USER CODE END 6 */ 
 }
 
@@ -273,8 +277,13 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 7 */ 
-  USBD_CDC_SetTxBuffer(hUsbDevice_0, Buf, Len);   
-  result = USBD_CDC_TransmitPacket(hUsbDevice_0);
+	if(hUsbDevice_0 != NULL){
+		USBD_CDC_SetTxBuffer(hUsbDevice_0, Buf, Len);   
+		result = USBD_CDC_TransmitPacket(hUsbDevice_0);
+	}else{
+		result = USBD_FAIL;
+	}
+	
   /* USER CODE END 7 */ 
   return result;
 }

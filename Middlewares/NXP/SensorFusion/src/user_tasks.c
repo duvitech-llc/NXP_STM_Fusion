@@ -28,11 +28,12 @@
 // and fusion tasks (eg. 25Hz), then this is the file for you.  Just put your code
 // where ever you see "PUT YOUR CODE HERE"
 //
+/*
 #include "Cpu.h"
 #include "UART_A.h"
 #include "UART_B.h"
-
-#include "mqx_tasks.h"
+*/
+#include "rtos_tasks.h"
 #include "Events.h"
 #include "drivers.h"
 #include "UART_A.h"

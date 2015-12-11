@@ -95,7 +95,7 @@
 
 #define configUSE_PREEMPTION                     1
 #define configUSE_IDLE_HOOK                      0
-#define configUSE_TICK_HOOK                      0
+#define configUSE_TICK_HOOK                      1
 #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 7 )
@@ -106,7 +106,9 @@
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1
 #define configQUEUE_REGISTRY_SIZE                8
+#define configCHECK_FOR_STACK_OVERFLOW           1
 #define configUSE_RECURSIVE_MUTEXES              1
+#define configUSE_MALLOC_FAILED_HOOK             1
 #define configUSE_COUNTING_SEMAPHORES            1
 
 /* Co-routine definitions. */
@@ -120,7 +122,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelete                 1
 #define INCLUDE_vTaskCleanUpResources       0
 #define INCLUDE_vTaskSuspend                1
-#define INCLUDE_vTaskDelayUntil             0
+#define INCLUDE_vTaskDelayUntil             1
 #define INCLUDE_vTaskDelay                  1
 #define INCLUDE_xTaskGetSchedulerState      1
 

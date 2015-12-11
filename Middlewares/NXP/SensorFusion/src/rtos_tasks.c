@@ -35,16 +35,20 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-
+/*
 #include "Cpu.h"
 #include "Events.h"
-#include "mqx_tasks.h"
+*/
+
+#include "rtos_tasks.h"
+/*
 #include "Init_Config.h"
 #include "PDD_Includes.h"
 #include "LED_RED.h"
 #include "LED_GREEN.h"
 #include "I2C.h"
 #include "FTM.h"
+*/
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
 #include "types.h"

@@ -28,18 +28,19 @@
 //
 // Sensor drivers require logical device drivers (for I2C) created via Processor Expert.
 // If you change sensors and/or MCU architecture, these will need to be replaced as appropriate.
-//
+/*
 #include "I2C.h"
 #include "UART_A.h"
 #include "UART_B.h"
 #include "FTM.h"
-#include "string.h"
+*/
+#include <string.h>
 
 #include "build.h"
 #include "types.h"
 #include "drivers.h"
 #include "magnetic.h"
-#include "mqx_tasks.h"
+#include "rtos_tasks.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // low level I2C drivers

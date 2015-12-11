@@ -28,15 +28,15 @@
 // is extremely complex, and it will be very easy (almost inevitable) that you screw it
 // up.
 //
-#include "stdio.h"
-#include "math.h"
-#include "stdlib.h"
-#include "time.h"
-#include "string.h"
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
 
 #include "build.h"
 #include "types.h"
-#include "mqx_tasks.h"
+#include "rtos_tasks.h"
 #include "magnetic.h"
 #include "matrix.h"
 

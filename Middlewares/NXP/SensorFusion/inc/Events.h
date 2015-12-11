@@ -26,6 +26,7 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
+/*
 #include "PE_Types.h"
 #include "PE_Error.h"
 #include "PE_Const.h"
@@ -38,6 +39,7 @@
 #include "UART_A.h"
 #include "UART_B.h"
 #include "I2C.h"
+*/
 
 // prototypes for functions defined in Events.c
 void Cpu_OnNMIINT(void);

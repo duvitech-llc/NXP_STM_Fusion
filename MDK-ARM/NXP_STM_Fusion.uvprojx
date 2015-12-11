@@ -84,6 +84,8 @@
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
+            <nStopA1X>0</nStopA1X>
+            <nStopA2X>0</nStopA2X>
           </AfterMake>
           <SelectedForBatchBuild>0</SelectedForBatchBuild>
           <SVCSIdString></SVCSIdString>
@@ -361,11 +363,13 @@
             <uSurpInc>0</uSurpInc>
             <uC99>0</uC99>
             <useXO>0</useXO>
+            <v6Lang>0</v6Lang>
+            <v6LangP>0</v6LangP>
             <VariousControls>
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F411xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;  ../Drivers/STM32F4xx_HAL_Driver/Inc;  ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;  ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc;  ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc;  ../Middlewares/Third_Party/FreeRTOS/Source/include;  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;  ../Drivers/CMSIS/Include;  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include</IncludePath>
+              <IncludePath>../Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/NXP/SensorFusion/inc;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F4xx/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -416,9 +420,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>::CMSIS</GroupName>
-        </Group>
-        <Group>
           <GroupName>Application/User</GroupName>
           <Files>
             <File>
@@ -460,6 +461,31 @@
               <FileName>stm32f4xx_hal_msp.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtos_tasks.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\rtos_tasks.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_tasks.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\user_tasks.c</FilePath>
+            </File>
+            <File>
+              <FileName>Events.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\Events.c</FilePath>
+            </File>
+            <File>
+              <FileName>drivers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\drivers.c</FilePath>
+            </File>
+            <File>
+              <FileName>fusion_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\fusion_task.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -657,6 +683,39 @@
               <FilePath>../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/port.c</FilePath>
             </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/NXP/SensorFusion</GroupName>
+          <Files>
+            <File>
+              <FileName>magnetic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\magnetic.c</FilePath>
+            </File>
+            <File>
+              <FileName>approximations.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\approximations.c</FilePath>
+            </File>
+            <File>
+              <FileName>fusion.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\fusion.c</FilePath>
+            </File>
+            <File>
+              <FileName>matrix.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\matrix.c</FilePath>
+            </File>
+            <File>
+              <FileName>orientation.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\NXP\SensorFusion\src\orientation.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>::CMSIS</GroupName>
         </Group>
       </Groups>
     </Target>

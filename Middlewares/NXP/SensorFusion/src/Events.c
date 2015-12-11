@@ -28,9 +28,11 @@
 // from hardware interrupt handlers.  This also includes the UART_A input command
 // interpreter.
 //
+/*
 #include "Cpu.h"
+*/
 #include "Events.h"
-#include "mqx_tasks.h"
+#include "rtos_tasks.h"
 #include "Init_Config.h"
 #include "PDD_Includes.h"
 

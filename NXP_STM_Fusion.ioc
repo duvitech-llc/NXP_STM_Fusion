@@ -1,6 +1,10 @@
 #MicroXplorer Configuration settings - do not modify
-FREERTOS.IPParameters=Tasks01
-FREERTOS.Tasks01=defaultTask,0,128,StartDefaultTask
+FREERTOS.INCLUDE_vTaskDelayUntil=1
+FREERTOS.IPParameters=Tasks01,INCLUDE_vTaskDelayUntil,configUSE_TICK_HOOK,configUSE_MALLOC_FAILED_HOOK,configCHECK_FOR_STACK_OVERFLOW
+FREERTOS.Tasks01=defaultTask,0,1024,StartDefaultTask
+FREERTOS.configCHECK_FOR_STACK_OVERFLOW=1
+FREERTOS.configUSE_MALLOC_FAILED_HOOK=1
+FREERTOS.configUSE_TICK_HOOK=1
 File.Version=5
 I2C1.I2C_Mode=I2C_Fast
 I2C1.IPParameters=I2C_Mode
@@ -57,11 +61,10 @@ NVIC.EXTI15_10_IRQn=true\:5\:0\:false
 NVIC.EXTI3_IRQn=true\:5\:0\:false
 NVIC.EXTI4_IRQn=true\:5\:0\:false
 NVIC.EXTI9_5_IRQn=true\:5\:0\:false
-NVIC.HardFault_IRQn=true\:0\:0\:false
-NVIC.MemoryManagement_IRQn=true\:0\:0\:false
 NVIC.OTG_FS_IRQn=true\:5\:0\:false
 NVIC.PriorityGroup=NVIC_PRIORITYGROUP_4
 NVIC.SysTick_IRQn=true\:15\:0\:false
+NVIC.TIM1_UP_TIM10_IRQn=true\:5\:0\:false
 NVIC.USART2_IRQn=true\:5\:0\:false
 PA10.GPIOParameters=GPIO_Label
 PA10.GPIO_Label=DRDY

@@ -23,9 +23,10 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef MQX_TASKS_H
-#define MQX_TASKS_H
+#ifndef RTOS_TASKS_H
+#define RTOS_TASKS_H
 
+/*
 #include "PE_Types.h"
 #include "PE_Error.h"
 #include "PE_Const.h"
@@ -42,7 +43,11 @@
 #include "FTM.h"
 #include "UART_A.h"
 #include "lwevent.h"
+*/
 #include "build.h"
+#include "types.h"
+#include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
 
 // globals defined in mqx_tasks.c
 extern struct ProjectGlobals globals;
@@ -68,4 +73,4 @@ void RdSensData_task(uint32_t task_init_data);
 void Fusion_task(uint32_t task_init_data);
 void MagCal_task(uint32_t task_init_data);
 
-#endif // MQX_TASKS_H
+#endif // RTOS_TASKS_H
