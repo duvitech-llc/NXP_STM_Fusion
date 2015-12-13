@@ -26,7 +26,7 @@
 #ifndef MAGNETIC_H
 #define MAGNETIC_H
 
-#include "mqx_tasks.h"
+#include "rtos_tasks.h"
 
 // magnetic calibration constants
 #define MAGBUFFSIZEX 14					// x dimension in magnetometer buffer (12x24 equals 288 elements)

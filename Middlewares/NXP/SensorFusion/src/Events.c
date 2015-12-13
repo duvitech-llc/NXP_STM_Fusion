@@ -260,12 +260,12 @@ void UART_A_OnBlockReceived(LDD_TUserData *UserDataPtr)
 	static char iCommandBuffer_A[5] = "~~~~";	// 5 bytes long to include the unused terminating \0
 
 	// determine how many bytes are available in the UART_A receive buffer and decode
-	nbytes = UART_A_GetReceivedDataNum(UART_A_DeviceData);
-	DecodeCommandBytes(iCommandBuffer_A, sUART_A_InputBuffer, nbytes);
+	//nbytes = UART_A_GetReceivedDataNum(UART_A_DeviceData);
+	//DecodeCommandBytes(iCommandBuffer_A, sUART_A_InputBuffer, nbytes);
 
 	// generate the next callback event to this function when the next character arrives
 	// this function is non-blocking
-	UART_A_ReceiveBlock(UART_A_DeviceData, sUART_A_InputBuffer, 1);
+	//UART_A_ReceiveBlock(UART_A_DeviceData, sUART_A_InputBuffer, 1);
 
 	return;
 }
@@ -277,12 +277,12 @@ void UART_B_OnBlockReceived(LDD_TUserData *UserDataPtr)
 	static char iCommandBuffer_B[5] = "~~~~";	// 5 bytes long to include the unused terminating \0
 
 	// determine how many bytes are available in the UART_B receive buffer and decode
-	nbytes = UART_B_GetReceivedDataNum(UART_B_DeviceData);
-	DecodeCommandBytes(iCommandBuffer_B, sUART_B_InputBuffer, nbytes);
+	//nbytes = UART_B_GetReceivedDataNum(UART_B_DeviceData);
+	//DecodeCommandBytes(iCommandBuffer_B, sUART_B_InputBuffer, nbytes);
 
 	// generate the next callback event to this function when the next character arrives
 	// this function is non-blocking
-	UART_B_ReceiveBlock(UART_B_DeviceData, sUART_B_InputBuffer, 1);
+	//UART_B_ReceiveBlock(UART_B_DeviceData, sUART_B_InputBuffer, 1);
 
 	return;
 }

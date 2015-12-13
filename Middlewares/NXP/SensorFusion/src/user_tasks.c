@@ -36,7 +36,6 @@
 #include "rtos_tasks.h"
 #include "Events.h"
 #include "drivers.h"
-#include "UART_A.h"
 
 // global structures
 uint8 sUARTOutputBuffer[256];  // larger than the nominal 124 byte size for outgoing packets
@@ -46,12 +45,11 @@ uint8 sUART_B_InputBuffer[32]; // larger than nominal 1 byte command in case of 
 void UserStartup(void)
 {
 	// initialize the BlueRadios Bluetooth module
-	BlueRadios_Init(UART_A_DeviceData);
-
+	
 	// trigger a callback when any single character is received into 
 	// the UART_A or UART_B buffers.
-	UART_A_ReceiveBlock(UART_A_DeviceData, sUART_A_InputBuffer, 1);	// Bluetooth on shield
-	UART_B_ReceiveBlock(UART_B_DeviceData, sUART_B_InputBuffer, 1);	// OpenSDA and USB
+	//UART_A_ReceiveBlock(UART_A_DeviceData, sUART_A_InputBuffer, 1);	// Bluetooth on shield
+	//UART_B_ReceiveBlock(UART_B_DeviceData, sUART_B_InputBuffer, 1);	// OpenSDA and USB
 	
 	// UART callbacks and command interpreter are located in Events.c
 
@@ -117,7 +115,7 @@ void UserMediumFrequencyTaskRun(void)
 	if (((int32)MAXPACKETRATEHZ * (int32)OVERSAMPLE_RATIO) >= (int32)SENSORFS)
 	{
 		// no UART bandwidth problem: transmit the packets over UART (USB and Bluetooth)
-		CreateAndSendPacketsViaUART(UART_A_DeviceData, UART_B_DeviceData);
+		//CreateAndSendPacketsViaUART(UART_A_DeviceData, UART_B_DeviceData);
 	}
 	else
 	{
@@ -131,7 +129,7 @@ void UserMediumFrequencyTaskRun(void)
 			// update the throttle counter and transmit the packets over 
 			// UART (USB and Bluetooth)
 			iThrottle -= RATERESOLUTION;
-			CreateAndSendPacketsViaUART(UART_A_DeviceData, UART_B_DeviceData);
+			//CreateAndSendPacketsViaUART(UART_A_DeviceData, UART_B_DeviceData);
 		}
 	}
 

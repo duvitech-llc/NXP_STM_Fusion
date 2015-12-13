@@ -1,6 +1,6 @@
 /*
   ******************************************************************************
-  * @file    fusion_task.h
+  * @file    BSP_MemsShield.h
   * @author  George Vigelette
   * @version V1.0.0
   * @date    11 December 2015
@@ -20,8 +20,8 @@
 */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __FUSION_TASK_H
-#define __FUSION_TASK_H
+#ifndef __BSP_MEMS_SHIELD_H
+#define __BSP_MEMS_SHIELD_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -33,11 +33,20 @@
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/ 
-
+void LED_BLUE_ClrVal(void);
+void LED_BLUE_SetVal(void);
+void LED_BLUE_NegVal(void);
+	 
+void LED_GREEN_ClrVal(void);
+void LED_GREEN_SetVal(void);
+void LED_GREEN_NegVal(void);
+	 
+void LED_YELLOW_ClrVal(void);
+void LED_YELLOW_SetVal(void);
+void LED_YELLOW_NegVal(void);
+	 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /*__FUSION_TASK_H */
-
-/************************ (C) COPYRIGHT Duvitech *****END OF FILE****/
+#endif /*__BSP_MEMS_SHIELD_H */

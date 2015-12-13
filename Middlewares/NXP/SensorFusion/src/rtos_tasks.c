@@ -33,19 +33,24 @@
 // These functions are intertwined with MQXLITE.  If you change RTOSs, you will have
 // to rework this file.
 //
-#include <stdio.h>
-#include <stdlib.h>
+
 /*
 #include "Cpu.h"
 #include "Events.h"
 */
+#include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "rtos_tasks.h"
+#include "BSP_MemsShield.h"
+
+
 /*
 #include "Init_Config.h"
 #include "PDD_Includes.h"
-#include "LED_RED.h"
-#include "LED_GREEN.h"
 #include "I2C.h"
 #include "FTM.h"
 */
@@ -113,19 +118,37 @@ void RdSensData_task(uint32_t task_init_data)
 	int8 i, j, k, l;				// counters
 
 	// create the sensor fusion task (controlled by sensor fusion event RunKFEventStruct)	
-	_task_create_at(0, FUSION_TASK, 0, Fusion_task_stack, FUSION_TASK_STACK_SIZE);
+	//_task_create_at(0, FUSION_TASK, 0, Fusion_task_stack, FUSION_TASK_STACK_SIZE);
 	// create the magnetic calibration task (controlled by MagCalEventStruct)	
-	_task_create_at(0, MAGCAL_TASK, 0, MagCal_task_stack, MAGCAL_TASK_STACK_SIZE);
+	//_task_create_at(0, MAGCAL_TASK, 0, MagCal_task_stack, MAGCAL_TASK_STACK_SIZE);
 
 	// create the sensor sampling event (typically 200Hz)
-	_lwevent_create(&(globals.SamplingEventStruct), LWEVENT_AUTO_CLEAR);
+	osSemaphoreDef(nxpSamplingSem);
+	globals.SamplingEventStruct = osSemaphoreCreate(osSemaphore(nxpSamplingSem), 1);
+	if(globals.SamplingEventStruct == NULL){
+		// error
+	}	
+	//_lwevent_create(&(globals.SamplingEventStruct), LWEVENT_AUTO_CLEAR);
+	
 	// create the Kalman filter sensor fusion event (typically 25Hz)
-	_lwevent_create(&(globals.RunKFEventStruct), LWEVENT_AUTO_CLEAR);
+	//_lwevent_create(&(globals.RunKFEventStruct), LWEVENT_AUTO_CLEAR);
+	osSemaphoreDef(runKFESem);
+	globals.RunKFEventStruct = osSemaphoreCreate(osSemaphore(runKFESem), 1);
+	if(globals.RunKFEventStruct == NULL){
+		// error
+	}
+	
+	
 	// create the magnetic calibration event (typically once per minute)
-	_lwevent_create(&(globals.MagCalEventStruct), LWEVENT_AUTO_CLEAR);
-
+	//_lwevent_create(&(globals.MagCalEventStruct), LWEVENT_AUTO_CLEAR);
+	osSemaphoreDef(magCalSem);
+	globals.MagCalEventStruct = osSemaphoreCreate(osSemaphore(magCalSem), 1);
+	if(globals.MagCalEventStruct == NULL){
+		// error
+	}
+	
 	// reset the sensor sampling interrupt timer and set period (typically to 200Hz) over-writing Processor Expert value
-	FTM_SetPeriodTicks(FTM_DeviceData, (uint16) (FTM_INCLK_HZ / SENSORFS));
+	//FTM_SetPeriodTicks(FTM_DeviceData, (uint16) (FTM_INCLK_HZ / SENSORFS));
 
 	// initialize globals
 	globals.AngularVelocityPacketOn = true;
@@ -138,7 +161,7 @@ void RdSensData_task(uint32_t task_init_data)
 
 	// initialize the physical sensors over I2C and hang on error to keep the red LED illuminated
 	// with exception of MPL3115 (so as to support 9AXIS board option which doesn't populate MPL3115)
-	LED_RED_ClrVal(NULL);		// red on
+	LED_YELLOW_ClrVal(NULL);		// red on
 	LED_GREEN_SetVal(NULL);		// green off
 
 #if defined USE_MPL3115
@@ -168,7 +191,7 @@ void RdSensData_task(uint32_t task_init_data)
 #endif
 
 	// set red LED off now all required sensors are detected
-	LED_RED_SetVal(NULL);		
+	LED_YELLOW_SetVal(NULL);		
 
 	// initialize user high frequency (typically 200Hz) task
 	UserHighFrequencyTaskInit();
@@ -473,9 +496,9 @@ void MagCal_task(uint32_t task_init_data)
 	{
 		// wait for the magnetic calibration event
 		// FALSE means any bit (of the 1 bit enabled by the mask) unblocks and NULL means infinite timeout
-		LED_RED_SetVal(NULL); 				// red LED off
+		LED_YELLOW_SetVal(NULL); 				// red LED off
 		_lwevent_wait_for(&(globals.MagCalEventStruct), 1, FALSE, NULL);
-		LED_RED_ClrVal(NULL);   			// red LED on
+		LED_YELLOW_ClrVal(NULL);   			// red LED on
 
 		// run the magnetic calibration
 #if defined COMPUTE_3DOF_B_BASIC || defined COMPUTE_6DOF_GB_BASIC || defined COMPUTE_9DOF_GBY_KALMAN

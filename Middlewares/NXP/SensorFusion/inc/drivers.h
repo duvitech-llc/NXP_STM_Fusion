@@ -26,7 +26,7 @@
 #ifndef DRIVERS_H
 #define DRIVERS_H
 
-#include "mqx_tasks.h"
+#include "rtos_tasks.h"
 
 // sensor physical I2C addresses
 #define MPL3115_I2C_ADDR				0x60
@@ -97,26 +97,13 @@
 #define FXLS8952_WHO_AM_I_VALUE			0x72
 
 // functions defined in drivers.c
-int8 WriteI2CByte(LDD_TDeviceData *DeviceDataPtr, uint8 I2CAddress, uint8 I2CRegister, uint8 I2CData);
-int8 ReadI2CBytes(LDD_TDeviceData *DeviceDataPtr, uint8 I2CAddress, uint8 I2CRegister, uint8 *I2C_Buffer, uint8 nbytes);
-int8 MPL3115_Init(LDD_TDeviceData *DeviceDataPtr, struct PressureSensor *pthisPressure);
-int8 FXOS8700_Init(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel, struct MagSensor *pthisMag);
-int8 FXAS2100X_Init(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthisGyro);
-int8 MMA8652_Init(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel);
-int8 FXLS8952_Init(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel);
-int8 MAG3110_Init(LDD_TDeviceData *DeviceDataPtr, struct MagSensor *pthisMag);
-int8 MPL3115_ReadData(LDD_TDeviceData *DeviceDataPtr, struct PressureSensor *pthisPressure);
-int8 FXOS8700_ReadAccData(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel);
-int8 FXOS8700_ReadMagData(LDD_TDeviceData *DeviceDataPtr, struct MagSensor *pthisMag);
-int8 FXAS2100X_ReadData(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthisGyro);
-int8 MMA8652_ReadData(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel);
-int8 FXLS8952_ReadData(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel);
-int8 MAG3110_ReadData(LDD_TDeviceData *DeviceDataPtr, struct MagSensor *pthisMag);
+int8 LSM9DS0_Init(void *DeviceDataPtr, struct GyroSensor *pthisGyro, struct PressureSensor *pthisPressure);
+int8 LSM9DS0_ReadData(void *DeviceDataPtr, struct GyroSensor *pthisGyro, struct PressureSensor *pthisPressure);
 void ApplyAccelHAL(struct AccelSensor *pthisAccel);
 void ApplyMagHAL(struct MagSensor *pthisMag);
 void ApplyGyroHAL(struct GyroSensor *pthisGyro);
-void BlueRadios_Init(LDD_TDeviceData *DeviceDataPtr);
+void BlueRadios_Init(void);
 void sBufAppendItem(uint8* pDest, uint32* pIndex, uint8* pSource, uint16 iBytesToCopy);
-void CreateAndSendPacketsViaUART(LDD_TDeviceData *DeviceDataPtr_A, LDD_TDeviceData *DeviceDataPtr_B);
+void CreateAndSendPacketsViaUART(void *DeviceDataPtr_A, void *DeviceDataPtr_B);
 
 #endif // DRIVERS_H

@@ -26,28 +26,9 @@
 #ifndef RTOS_TASKS_H
 #define RTOS_TASKS_H
 
-/*
-#include "PE_Types.h"
-#include "PE_Error.h"
-#include "PE_Const.h"
-#include "IO_Map.h"
-#include "Cpu.h"
-#include "MQX1.h"
-#include "SystemTimer1.h"
-#include "LED_RED.h"
-#include "LED_GREEN.h"
-#include "FTM.h"
-#include "UART_A.h"
-#include "I2C.h"
-#include "UART_B.h"
-#include "FTM.h"
-#include "UART_A.h"
-#include "lwevent.h"
-*/
+#include "stm32f4xx_hal.h"
 #include "build.h"
 #include "types.h"
-#include "stm32f4xx_hal.h"
-#include "cmsis_os.h"
 
 // globals defined in mqx_tasks.c
 extern struct ProjectGlobals globals;

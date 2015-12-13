@@ -26,6 +26,10 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
+#include "build.h"
+
 // these definition re-define (but with no changes) those in MQX-Lite PE-Types.h for Kinetis
 typedef signed char				int8;
 typedef unsigned char			uint8;
@@ -64,8 +68,11 @@ struct ProjectGlobals
 {
 	volatile quaternion_type QuaternionPacketType;	// quaternion transmitted over UART
 	quaternion_type DefaultQuaternionPacketType;	// default quaternion transmitted at power on
+	osSemaphoreId SamplingEventStruct;
 	//LWEVENT_STRUCT SamplingEventStruct;				// MQX-Lite hardware timer event
+	void * RunKFEventStruct;
 	//LWEVENT_STRUCT RunKFEventStruct;				// MQX-Lite kalman filter sensor fusion event
+	void * MagCalEventStruct;
 	//LWEVENT_STRUCT MagCalEventStruct;				// MQX-Lite magnetic calibration event
 	int32 loopcounter;								// counter incrementing each iteration of sensor fusion (typically 25Hz)
 	volatile uint8 AngularVelocityPacketOn;			// flag to transmit angular velocity packet

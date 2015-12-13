@@ -26,7 +26,7 @@
 #ifndef ORIENTATION_H
 #define ORIENTATION_H
               
-#include "mqx_tasks.h"
+#include "rtos_tasks.h"
 
 // function prototypes
 void f3DOFTiltNED(float fR[][3], float fGs[]);
