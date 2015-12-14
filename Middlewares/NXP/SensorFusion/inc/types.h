@@ -147,7 +147,7 @@ struct SV_1DOF_P_BASIC
 	float fLPT;					// low pass filtered temperature (C)
 	float fdeltat;				// time interval (s)	
 	float flpf;					// low pass filter coefficient
-	int32 systick;				// systick timer
+	uint32_t systick;				// systick timer
 	int8 resetflag;				// flag to request re-initialization on next pass
 };
 
@@ -164,7 +164,7 @@ struct SV_3DOF_G_BASIC
 	struct fquaternion fLPq;		// low pass filtered orientation quaternion
 	float fLPRVec[3];				// rotation vector
 	float fOmega[3];				// angular velocity (deg/s)
-	int32 systick;					// systick timer
+	uint32_t systick;					// systick timer
 	// end: elements common to all motion state vectors
 	float fR[3][3];					// unfiltered orientation matrix
 	struct fquaternion fq;			// unfiltered orientation quaternion
@@ -186,7 +186,7 @@ struct SV_3DOF_B_BASIC
 	struct fquaternion fLPq;			// low pass filtered orientation quaternion
 	float fLPRVec[3];					// rotation vector
 	float fOmega[3];					// angular velocity (deg/s)
-	int32 systick;						// systick timer
+	uint32_t systick;						// systick timer
 	// end: elements common to all motion state vectors
 	float fR[3][3];						// unfiltered orientation matrix
 	struct fquaternion fq;				// unfiltered orientation quaternion
@@ -208,7 +208,7 @@ struct SV_3DOF_Y_BASIC
 	struct fquaternion fq;			// unfiltered orientation quaternion
 	float fRVec[3];					// rotation vector
 	float fOmega[3];				// angular velocity (deg/s)
-	int32 systick;					// systick timer
+	uint32_t systick;					// systick timer
 	// end: elements common to all motion state vectors
 	float fGyrodeltat;				// gyro sensor sampling interval (s) = 1 / SENSORFS
 	float fdeltat;					// kalman filter sampling interval (s) = OVERSAMPLE_RATIO / SENSORFS
@@ -228,7 +228,7 @@ struct SV_6DOF_GB_BASIC
 	struct fquaternion fLPq;		// low pass filtered orientation quaternion
 	float fLPRVec[3];				// rotation vector
 	float fOmega[3];				// virtual gyro angular velocity (deg/s)
-	int32 systick;					// systick timer
+	uint32_t systick;					// systick timer
 	// end: elements common to all motion state vectors
 	float fR[3][3];					// unfiltered orientation matrix
 	struct fquaternion fq;			// unfiltered orientation quaternion
@@ -252,7 +252,7 @@ struct SV_6DOF_GY_KALMAN
 	struct fquaternion fqPl;			// a posteriori orientation quaternion
 	float fRVecPl[3];					// rotation vector
 	float fOmega[3];					// average angular velocity (deg/s)
-	int32 systick;						// systick timer;
+	uint32_t systick;						// systick timer;
 	// end: elements common to all motion state vectors
 	float fQw6x6[6][6];					// covariance matrix Qw
 	float fK6x3[6][3];					// kalman filter gain matrix K
@@ -284,7 +284,7 @@ struct SV_9DOF_GBY_KALMAN
 	struct fquaternion fqPl;			// a posteriori orientation quaternion
 	float fRVecPl[3];					// rotation vector
 	float fOmega[3];					// average angular velocity (deg/s)
-	int32 systick;						// systick timer;
+	uint32_t systick;						// systick timer;
 	// end: elements common to all motion state vectors
 	float fQw10x10[10][10];				// covariance matrix Qw
 	float fK10x7[10][7];				// kalman filter gain matrix K

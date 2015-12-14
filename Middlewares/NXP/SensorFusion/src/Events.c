@@ -33,11 +33,13 @@
 */
 #include "Events.h"
 #include "rtos_tasks.h"
+/*
 #include "Init_Config.h"
 #include "PDD_Includes.h"
+*/
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
-#include "build.h"
+
 #include "types.h"
 #include "fusion.h"
 #include "magnetic.h"
@@ -50,65 +52,65 @@ void Cpu_OnNMIINT(void)
 	return;
 }
 
-void FTM_OnCounterRestart(LDD_TUserData *UserDataPtr)
+void FTM_OnCounterRestart(void *UserDataPtr)
 {
 	// this function is called (typically at 200Hz) by the hardware clock interrupt and drives the sensor
 	// read function and indirectly the fusion and magnetic calibration functions which
 	// are software locked to the sensor read process
 	
 	// enable the (typically 200Hz) sensor read event
-	_lwevent_set(&(globals.SamplingEventStruct), 1);
+	//_lwevent_set(&(globals.SamplingEventStruct), 1);
 
 	return;
 }
 
-void I2C_OnMasterBlockSent(LDD_TUserData *UserDataPtr)
+void I2C_OnMasterBlockSent(void *UserDataPtr)
 {
 	// return with no action
 	return;
 }
 
-void I2C_OnMasterBlockReceived(LDD_TUserData *UserDataPtr)
+void I2C_OnMasterBlockReceived(void *UserDataPtr)
 {
 	// return with no action
 	return;
 }
 
-void I2C_OnError(LDD_TUserData *UserDataPtr)
-{
-	// return with no action
-	return;
-}
-
-// UART_A goes to shield and UART_B to OpenSDA to support wireless and wired USB connectivity
-void UART_A_OnBlockSent(LDD_TUserData *UserDataPtr)
+void I2C_OnError(void *UserDataPtr)
 {
 	// return with no action
 	return;
 }
 
 // UART_A goes to shield and UART_B to OpenSDA to support wireless and wired USB connectivity
-void UART_B_OnBlockSent(LDD_TUserData *UserDataPtr)
+void UART_A_OnBlockSent(void *UserDataPtr)
 {
 	// return with no action
 	return;
 }
 
 // UART_A goes to shield and UART_B to OpenSDA to support wireless and wired USB connectivity
-void UART_A_OnTxComplete(LDD_TUserData *UserDataPtr)
+void UART_B_OnBlockSent(void *UserDataPtr)
 {
 	// return with no action
 	return;
 }
 
 // UART_A goes to shield and UART_B to OpenSDA to support wireless and wired USB connectivity
-void UART_B_OnTxComplete(LDD_TUserData *UserDataPtr)
+void UART_A_OnTxComplete(void *UserDataPtr)
 {
 	// return with no action
 	return;
 }
 
-void DecodeCommandBytes(char iCommandBuffer[], uint8 sUART_InputBuffer[], uint16 nbytes)
+// UART_A goes to shield and UART_B to OpenSDA to support wireless and wired USB connectivity
+void UART_B_OnTxComplete(void *UserDataPtr)
+{
+	// return with no action
+	return;
+}
+
+void DecodeCommandBytes(char iCommandBuffer[], uint8_t sUART_InputBuffer[], uint16_t nbytes)
 {
 	int32 isum;							// 32 bit command identifier
 	int16 i, j;							// loop counters
@@ -254,7 +256,7 @@ void DecodeCommandBytes(char iCommandBuffer[], uint8 sUART_InputBuffer[], uint16
 // in any issued command.
 
 // this function decodes instructions received over UART_A (Bluetooth module on shield)
-void UART_A_OnBlockReceived(LDD_TUserData *UserDataPtr)
+void UART_A_OnBlockReceived(void *UserDataPtr)
 {
 	uint16 nbytes;								// number of bytes received
 	static char iCommandBuffer_A[5] = "~~~~";	// 5 bytes long to include the unused terminating \0
@@ -271,7 +273,7 @@ void UART_A_OnBlockReceived(LDD_TUserData *UserDataPtr)
 }
 
 // this function decodes instructions received over UART_B (OpenSDA and USB)
-void UART_B_OnBlockReceived(LDD_TUserData *UserDataPtr)
+void UART_B_OnBlockReceived(void *UserDataPtr)
 {
 	uint16 nbytes;								// number of bytes received
 	static char iCommandBuffer_B[5] = "~~~~";	// 5 bytes long to include the unused terminating \0

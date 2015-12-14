@@ -187,18 +187,12 @@ void RdSensData_task(uint32_t task_init_data)
 		// wait here for the sensor sampling event from the hardware timer
 		// the sensor fusion and magnetic calibration tasks execute while this task is blocked here
 		// FALSE means any bit (of the 1 bit enabled by the mask) unblocks and NULL means infinite timeout
-		_lwevent_wait_for(&(globals.SamplingEventStruct), 1, FALSE, NULL);
+		//_lwevent_wait_for(&(globals.SamplingEventStruct), 1, FALSE, NULL);
 
 		// read and process accelerometer sensor in every slot if present if accelerometer algorithm is in use.
 #if defined COMPUTE_3DOF_G_BASIC || defined COMPUTE_6DOF_GB_BASIC || defined COMPUTE_6DOF_GY_KALMAN || defined COMPUTE_9DOF_GBY_KALMAN
 #if defined USE_FXOS8700
-		FXOS8700_ReadAccData(I2C_DeviceData, &thisAccel);
-#endif
-#if defined USE_MMA8652
-		MMA8652_ReadData(I2C_DeviceData, &thisAccel);
-#endif
-#if defined USE_FXLS8952
-		FXLS8952_ReadData(I2C_DeviceData, &thisAccel);
+		LSM9DS0_ReadData(&thisGyro, &thisAccel, &thisMag);
 #endif
 		// store measurement in a buffer for later end of block processing
 		for (i = CHX; i <= CHZ; i++)
@@ -223,15 +217,9 @@ void RdSensData_task(uint32_t task_init_data)
 			}
 		} // end of test for end of OVERSAMPLE_RATIO block
 #endif // end of check for accelerometer algorithm and sensor
-
+		
 		// read and process the magnetometer sensor in every slot if magnetic algorithm is in use.
 #if defined COMPUTE_3DOF_B_BASIC || defined COMPUTE_6DOF_GB_BASIC || defined COMPUTE_9DOF_GBY_KALMAN
-#if defined USE_FXOS8700
-		FXOS8700_ReadMagData(I2C_DeviceData, &thisMag);
-#endif
-#if defined USE_MAG3110
-		MAG3110_ReadData(I2C_DeviceData, &thisMag);
-#endif
 		// store in a buffer for later end of block processing
 		for (i = CHX; i <= CHZ; i++)
 			thisMag.iBsBuffer[iCounter][i] = thisMag.iBs[i];
@@ -323,22 +311,12 @@ void RdSensData_task(uint32_t task_init_data)
 
 		// read the gyro sensor every time slot
 #if defined COMPUTE_3DOF_Y_BASIC || defined COMPUTE_6DOF_GY_KALMAN || defined COMPUTE_9DOF_GBY_KALMAN
-#if defined USE_FXAS2100X
-		FXAS2100X_ReadData(I2C_DeviceData, &thisGyro);
-#endif
 		// store in a buffer for later gyro integration by sensor fusion algorithms
 		for (i = CHX; i <= CHZ; i++)
 			thisGyro.iYsBuffer[iCounter][i] = thisGyro.iYs[i];
 #endif // end of check for gyro algorithm and sensor
 
 		// read pressure only in first iCounter slot giving read at SENSORFS/OVERSAMPLE_RATIO Hz = 25Hz nominal
-		// the MPL3115 is set to average 512 internal samples with 512ms ODR but it is read here at (typically) 25Hz
-		// to over-sample and allow the low pass filter in the fusion task to smoothly interpolate the measurement.
-#if defined USE_MPL3115
-		if ((iCounter == 0) && thisPressure.iWhoAmI)
-			MPL3115_ReadData(I2C_DeviceData, &thisPressure);
-#endif // end of check for pressure sensor
-
 		// run the user high frequency task
 		UserHighFrequencyTaskRun();
 
@@ -346,7 +324,7 @@ void RdSensData_task(uint32_t task_init_data)
 		if (iCounter++ == (OVERSAMPLE_RATIO - 1))
 		{
 			iCounter = 0;
-			_lwevent_set(&(globals.RunKFEventStruct), 1);
+			//_lwevent_set(&(globals.RunKFEventStruct), 1);
 		} 
 	} // end of infinite loop
 }
@@ -368,68 +346,68 @@ void Fusion_task(uint32_t task_init_data)
 	{
 		// wait for the sensor fusion task to be enabled
 		// the magnetic calibration task executes while the fusion task is blocked here
-		_lwevent_wait_for(&(globals.RunKFEventStruct), 1, FALSE, NULL);
+		//_lwevent_wait_for(&(globals.RunKFEventStruct), 1, FALSE, NULL);
 
 		// flash the green LED to denote the sensor fusion is running
 		if (++LEDGreenCounter >= SENSORFS / (4 * OVERSAMPLE_RATIO))
 		{
-			LED_GREEN_NegVal(NULL);
+			LED_GREEN_NegVal();
 			LEDGreenCounter = 0;
 		}
 
 		// 1DOF Pressure: call the low pass filter algorithm
 #if defined COMPUTE_1DOF_P_BASIC
-		thisSV_1DOF_P_BASIC.systick = SYST_CVR & 0x00FFFFFF;
+		thisSV_1DOF_P_BASIC.systick = xTaskGetTickCount(); // & 0x00FFFFFF;
 		fRun_1DOF_P_BASIC(&thisSV_1DOF_P_BASIC, &thisPressure);
-		thisSV_1DOF_P_BASIC.systick -= SYST_CVR & 0x00FFFFFF;
-		if (thisSV_1DOF_P_BASIC.systick < 0) thisSV_1DOF_P_BASIC.systick += SYST_RVR;	
+		thisSV_1DOF_P_BASIC.systick -= xTaskGetTickCount(); // & 0x00FFFFFF;
+		//if (thisSV_1DOF_P_BASIC.systick < 0) thisSV_1DOF_P_BASIC.systick += SYST_RVR;	
 #endif
 
 		// 3DOF Accel Basic: call the tilt algorithm
 #if defined COMPUTE_3DOF_G_BASIC		
-		thisSV_3DOF_G_BASIC.systick = SYST_CVR & 0x00FFFFFF;		
+		thisSV_3DOF_G_BASIC.systick = xTaskGetTickCount(); // & 0x00FFFFFF;		
 		fRun_3DOF_G_BASIC(&thisSV_3DOF_G_BASIC, &thisAccel);
-		thisSV_3DOF_G_BASIC.systick -= SYST_CVR & 0x00FFFFFF;
-		if (thisSV_3DOF_G_BASIC.systick < 0) thisSV_3DOF_G_BASIC.systick += SYST_RVR;
+		thisSV_3DOF_G_BASIC.systick -= xTaskGetTickCount(); // & 0x00FFFFFF;
+		//if (thisSV_3DOF_G_BASIC.systick < 0) thisSV_3DOF_G_BASIC.systick += SYST_RVR;
 #endif
 
 		// 3DOF Magnetometer Basic: call the 2D vehicle compass algorithm
 #if defined COMPUTE_3DOF_B_BASIC
-		thisSV_3DOF_B_BASIC.systick = SYST_CVR & 0x00FFFFFF;
+		thisSV_3DOF_B_BASIC.systick = xTaskGetTickCount(); // & 0x00FFFFFF;
 		fRun_3DOF_B_BASIC(&thisSV_3DOF_B_BASIC, &thisMag);
-		thisSV_3DOF_B_BASIC.systick -= SYST_CVR & 0x00FFFFFF;
-		if (thisSV_3DOF_B_BASIC.systick < 0) thisSV_3DOF_B_BASIC.systick += SYST_RVR;	
+		thisSV_3DOF_B_BASIC.systick -= xTaskGetTickCount(); // & 0x00FFFFFF;
+		//if (thisSV_3DOF_B_BASIC.systick < 0) thisSV_3DOF_B_BASIC.systick += SYST_RVR;	
 #endif
 
 		// 3DOF Gyro Basic: call the gyro integration algorithm
 #if defined COMPUTE_3DOF_Y_BASIC	
-		thisSV_3DOF_Y_BASIC.systick = SYST_CVR & 0x00FFFFFF;
+		thisSV_3DOF_Y_BASIC.systick = xTaskGetTickCount(); // & 0x00FFFFFF;	
 		fRun_3DOF_Y_BASIC(&thisSV_3DOF_Y_BASIC, &thisGyro);
-		thisSV_3DOF_Y_BASIC.systick -= SYST_CVR & 0x00FFFFFF;
-		if (thisSV_3DOF_Y_BASIC.systick < 0) thisSV_3DOF_Y_BASIC.systick += SYST_RVR;
+		thisSV_3DOF_Y_BASIC.systick -= xTaskGetTickCount(); // & 0x00FFFFFF;	
+		//if (thisSV_3DOF_Y_BASIC.systick < 0) thisSV_3DOF_Y_BASIC.systick += SYST_RVR;
 #endif
 
 		// 6DOF Accel / Mag: Basic: call the eCompass orientation algorithm
 #if defined COMPUTE_6DOF_GB_BASIC		
-		thisSV_6DOF_GB_BASIC.systick = SYST_CVR & 0x00FFFFFF;
+		thisSV_6DOF_GB_BASIC.systick = xTaskGetTickCount(); // & 0x00FFFFFF;	
 		fRun_6DOF_GB_BASIC(&thisSV_6DOF_GB_BASIC, &thisMag, &thisAccel);
-		thisSV_6DOF_GB_BASIC.systick -= SYST_CVR & 0x00FFFFFF;
-		if (thisSV_6DOF_GB_BASIC.systick < 0) thisSV_6DOF_GB_BASIC.systick += SYST_RVR;		
+		thisSV_6DOF_GB_BASIC.systick -= xTaskGetTickCount(); // & 0x00FFFFFF;	
+		//if (thisSV_6DOF_GB_BASIC.systick < 0) thisSV_6DOF_GB_BASIC.systick += SYST_RVR;		
 #endif
 
 		// 6DOF Accel / Gyro: call the Kalman filter orientation algorithm
 #if defined COMPUTE_6DOF_GY_KALMAN		
-		thisSV_6DOF_GY_KALMAN.systick = SYST_CVR & 0x00FFFFFF;
+		thisSV_6DOF_GY_KALMAN.systick = xTaskGetTickCount(); // & 0x00FFFFFF;	
 		fRun_6DOF_GY_KALMAN(&thisSV_6DOF_GY_KALMAN, &thisAccel, &thisGyro);
-		thisSV_6DOF_GY_KALMAN.systick -= SYST_CVR & 0x00FFFFFF;
-		if (thisSV_6DOF_GY_KALMAN.systick < 0) thisSV_6DOF_GY_KALMAN.systick += SYST_RVR;	
+		thisSV_6DOF_GY_KALMAN.systick -= xTaskGetTickCount(); // & 0x00FFFFFF;	
+		//if (thisSV_6DOF_GY_KALMAN.systick < 0) thisSV_6DOF_GY_KALMAN.systick += SYST_RVR;	
 #endif
 		// 9DOF Accel / Mag / Gyro: call the Kalman filter orientation algorithm
 #if defined COMPUTE_9DOF_GBY_KALMAN		
-		thisSV_9DOF_GBY_KALMAN.systick = SYST_CVR & 0x00FFFFFF;
+		thisSV_9DOF_GBY_KALMAN.systick = xTaskGetTickCount(); // & 0x00FFFFFF;	
 		fRun_9DOF_GBY_KALMAN(&thisSV_9DOF_GBY_KALMAN, &thisAccel, &thisMag, &thisGyro, &thisMagCal);
-		thisSV_9DOF_GBY_KALMAN.systick -= SYST_CVR & 0x00FFFFFF;		
-		if (thisSV_9DOF_GBY_KALMAN.systick < 0) thisSV_9DOF_GBY_KALMAN.systick += SYST_RVR;	
+		thisSV_9DOF_GBY_KALMAN.systick -= xTaskGetTickCount(); // & 0x00FFFFFF;		
+		//if (thisSV_9DOF_GBY_KALMAN.systick < 0) thisSV_9DOF_GBY_KALMAN.systick += SYST_RVR;	
 #endif
 
 		// decide whether or not to initiate a magnetic calibration
@@ -453,7 +431,7 @@ void Fusion_task(uint32_t task_init_data)
 			// initiate the magnetic calibration if any of the conditions are met
 			if (initiatemagcal)
 			{
-				_lwevent_set(&(globals.MagCalEventStruct), 1);
+				//_lwevent_set(&(globals.MagCalEventStruct), 1);
 			}
 
 		} // end of test that no calibration is already in progress
@@ -481,9 +459,9 @@ void MagCal_task(uint32_t task_init_data)
 	{
 		// wait for the magnetic calibration event
 		// FALSE means any bit (of the 1 bit enabled by the mask) unblocks and NULL means infinite timeout
-		LED_YELLOW_SetVal(NULL); 				// red LED off
-		_lwevent_wait_for(&(globals.MagCalEventStruct), 1, FALSE, NULL);
-		LED_YELLOW_ClrVal(NULL);   			// red LED on
+		LED_YELLOW_SetVal(); 				// red LED off
+		//_lwevent_wait_for(&(globals.MagCalEventStruct), 1, FALSE, NULL);
+		LED_YELLOW_ClrVal();   			// red LED on
 
 		// run the magnetic calibration
 #if defined COMPUTE_3DOF_B_BASIC || defined COMPUTE_6DOF_GB_BASIC || defined COMPUTE_9DOF_GBY_KALMAN

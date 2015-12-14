@@ -25,7 +25,7 @@
 //
 #ifndef EVENTS_H
 #define EVENTS_H
-
+#include "stm32f4xx_hal.h"
 /*
 #include "PE_Types.h"
 #include "PE_Error.h"
@@ -43,16 +43,16 @@
 
 // prototypes for functions defined in Events.c
 void Cpu_OnNMIINT(void);
-void FTM_OnCounterRestart(LDD_TUserData *UserDataPtr);
-void I2C_OnMasterBlockSent(LDD_TUserData *UserDataPtr);
-void I2C_OnMasterBlockReceived(LDD_TUserData *UserDataPtr);
-void I2C_OnError(LDD_TUserData *UserDataPtr);
-void DecodeCommandBytes(char iCommandBuffer[], uint8 sUART_InputBuffer[], uint16 nbytes);
-void UART_A_OnBlockSent(LDD_TUserData *UserDataPtr);
-void UART_A_OnTxComplete(LDD_TUserData *UserDataPtr);
-void UART_A_OnBlockReceived(LDD_TUserData *UserDataPtr);
-void UART_B_OnBlockSent(LDD_TUserData *UserDataPtr);
-void UART_B_OnTxComplete(LDD_TUserData *UserDataPtr);
-void UART_B_OnBlockReceived(LDD_TUserData *UserDataPtr);
+void FTM_OnCounterRestart(void *UserDataPtr);
+void I2C_OnMasterBlockSent(void *UserDataPtr);
+void I2C_OnMasterBlockReceived(void *UserDataPtr);
+void I2C_OnError(void *UserDataPtr);
+void DecodeCommandBytes(char iCommandBuffer[], uint8_t sUART_InputBuffer[], uint16_t nbytes);
+void UART_A_OnBlockSent(void *UserDataPtr);
+void UART_A_OnTxComplete(void *UserDataPtr);
+void UART_A_OnBlockReceived(void *UserDataPtr);
+void UART_B_OnBlockSent(void *UserDataPtr);
+void UART_B_OnTxComplete(void *UserDataPtr);
+void UART_B_OnBlockReceived(void *UserDataPtr);
 
 #endif // #ifndef EVENTS_H

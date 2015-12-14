@@ -36,7 +36,6 @@
 */
 #include <string.h>
 
-#include "build.h"
 #include "types.h"
 #include "drivers.h"
 #include "magnetic.h"
@@ -77,75 +76,26 @@ int8 LSM9DS0_Init(struct GyroSensor *pthisGyro, struct AccelSensor *pthisAccel, 
 	LSM_Acc_Init();
 	LSM_Gyro_Init();
 	
-	// write 0000 0000 = 0x00 to CTRL_REG1 to place FXOS8700 into standby
-	// [7-1] = 0000 000
-	// [0]: active=0
-	status &= WriteI2CByte(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_CTRL_REG1, 0x00);
-
-	// write 0001 1111 = 0x1F to M_CTRL_REG1
-	// [7]: m_acal=0: auto calibration disabled
-	// [6]: m_rst=0: one-shot magnetic reset disabled
-	// [5]: m_ost=0: one-shot magnetic measurement disabled
-	// [4-2]: m_os=111=7: 8x oversampling (for 200Hz) to reduce magnetometer noise
-	// [1-0]: m_hms=11=3: select hybrid mode with accel and magnetometer active
-	status &= WriteI2CByte(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_M_CTRL_REG1, 0x1F);
-
-	// write 0010 0000 = 0x20 to M_CTRL_REG2
-	// [7]: reserved
-	// [6]: reserved
-	// [5]: hyb_autoinc_mode=1 to map the magnetometer registers to follow the accelerometer registers
-	// [4]: m_maxmin_dis=0 to retain default min/max latching even though not used
-	// [3]: m_maxmin_dis_ths=0
-	// [2]: m_maxmin_rst=0
-	// [1-0]: m_rst_cnt=00 to enable magnetic reset each cycle
-	status &= WriteI2CByte(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_M_CTRL_REG2, 0x20);
-
-	// write 0000 0001= 0x01 to XYZ_DATA_CFG register
-	// [7]: reserved
-	// [6]: reserved
-	// [5]: reserved
-	// [4]: hpf_out=0
-	// [3]: reserved
-	// [2]: reserved
-	// [1-0]: fs=01 for 4g mode: 2048 counts / g = 8192 counts / g after 2 bit left shift
-	status &= WriteI2CByte(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_XYZ_DATA_CFG, 0x01);
-
-	// place the gain for this full scale range into the accelerometer structure
-#define FXOS8700_COUNTSPERG 8192			
-	pthisAccel->iCountsPerg = FXOS8700_COUNTSPERG;
-	pthisAccel->fgPerCount = 1.0F / FXOS8700_COUNTSPERG;
-
-	// write 0000 0010 = 0x02 to CTRL_REG2 to set MODS bits
-	// [7]: st=0: self test disabled
-	// [6]: rst=0: reset disabled
-	// [5]: unused
-	// [4-3]: smods=00
-	// [2]: slpe=0: auto sleep disabled
-	// [1-0]: mods=10 for high resolution (maximum over sampling)
-	status &= WriteI2CByte(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_CTRL_REG2, 0x02);
-
-	// write 0000 1101 = 0x0D to accelerometer control register 1
-	// [7-6]: aslp_rate=00
-	// [5-3]: dr=001=1 for 200Hz data rate (when in hybrid mode)
-	// [2]: lnoise=1 for low noise mode (since we're in 4g mode)
-	// [1]: f_read=0 for normal 16 bit reads
-	// [0]: active=1 to take the part out of standby and enable sampling
-	status &= WriteI2CByte(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_CTRL_REG1, 0x0D);
-
+	pthisAccel->fgPerCount = LSM_Acc_Get_Sensitivity();
+	pthisMag->fuTPerCount = LSM_Mag_Get_Sensitivity();
+	pthisMag->fCountsPeruT = 1/pthisMag->fuTPerCount;
+	pthisGyro->fDegPerSecPerCount = LSM_Gyro_Get_Sensitivity();
+	
+/*	
 	// store the magnetometer gain into the structure
 #define FXOS8700_COUNTSPERUT 10		
 	pthisMag->iCountsPeruT = FXOS8700_COUNTSPERUT;
 	pthisMag->fCountsPeruT = (float)FXOS8700_COUNTSPERUT;
 	pthisMag->fuTPerCount = 1.0F / FXOS8700_COUNTSPERUT;
-
-	return status;
+*/
+	return 0;
 }
 
 // initialize FXLS8952 accelerometer sensor for 200Hz ODR
-int8 FXLS8952_Init(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel)
+int8 FXLS8952_Init(void *DeviceDataPtr, struct AccelSensor *pthisAccel)
 {
-	int8 status;		// I2C transaction status
-
+	int8 status=0;		// I2C transaction status
+/*
 	// check the WHOAMI register for the correct value and return immediately if invalid
 	status = ReadI2CBytes(DeviceDataPtr, FXLS8952_I2C_ADDR, FXLS8952_WHO_AM_I, &(pthisAccel->iWhoAmI), 1);
 	status &= (pthisAccel->iWhoAmI == FXLS8952_WHO_AM_I_VALUE);
@@ -187,15 +137,15 @@ int8 FXLS8952_Init(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAcce
 #define FXLS8952_COUNTSPERG 512
 	pthisAccel->iCountsPerg = FXLS8952_COUNTSPERG;
 	pthisAccel->fgPerCount = 1.0F / FXLS8952_COUNTSPERG;
-
+*/
 	return status;
 }
 
 // initialize MMA8652 accelerometer sensor (200Hz ODR)
-int8 MMA8652_Init(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel)
+int8 MMA8652_Init(void *DeviceDataPtr, struct AccelSensor *pthisAccel)
 {
-	int8 status;		// I2C transaction status
-
+	int8 status = 0;		// I2C transaction status
+/*
 	// check the WHOAMI register for the correct value and return immediately if invalid
 	status = ReadI2CBytes(DeviceDataPtr, MMA8652_I2C_ADDR, MMA8652_WHO_AM_I, &(pthisAccel->iWhoAmI), 1);
 	status &= (pthisAccel->iWhoAmI == MMA8652_WHO_AM_I_VALUE);
@@ -238,14 +188,15 @@ int8 MMA8652_Init(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel
 	// [1]: f_read=0 for normal 16 bit reads
 	// [0]: active=1 to take the part out of standby and enable sampling
 	status &= WriteI2CByte(DeviceDataPtr, MMA8652_I2C_ADDR, MMA8652_CTRL_REG1, 0x11);
-
+*/
 	return status;
 }
 
 // initialize MAG3110 magnetometer sensor (80Hz ODR)
-int8 MAG3110_Init(LDD_TDeviceData *DeviceDataPtr, struct MagSensor *pthisMag)
+int8 MAG3110_Init(void *DeviceDataPtr, struct MagSensor *pthisMag)
 {
-	int8 status;		// I2C transaction status
+	int8 status = 0;		// I2C transaction status
+	/*
 
 	// check the WHOAMI register for the correct value and return immediately if invalid
 	status = ReadI2CBytes(DeviceDataPtr, MAG3110_I2C_ADDR, MAG3110_WHO_AM_I, &(pthisMag->iWhoAmI), 1);
@@ -282,15 +233,16 @@ int8 MAG3110_Init(LDD_TDeviceData *DeviceDataPtr, struct MagSensor *pthisMag)
 	pthisMag->iCountsPeruT = MAG3110_COUNTSPERUT;
 	pthisMag->fCountsPeruT = (float)MAG3110_COUNTSPERUT;
 	pthisMag->fuTPerCount = 1.0F / MAG3110_COUNTSPERUT;
+	*/
 
 	return status;
 }
 
 // initialize FXAS2100X gyroscope sensor (ODR is variable and matched to gyro sampling rate)
-int8 FXAS2100X_Init(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthisGyro)
+int8 FXAS2100X_Init(void *DeviceDataPtr, struct GyroSensor *pthisGyro)
 {
-	int8 status;		// I2C transaction status
-
+	int8 status = 0;		// I2C transaction status
+/*
 	// check the WHOAMI register for the correct value and return immediately if invalid
 	status = ReadI2CBytes(DeviceDataPtr, FXAS2100X_I2C_ADDR, FXAS2100X_WHO_AM_I, &(pthisGyro->iWhoAmI), 1);
 	status &= (pthisGyro->iWhoAmI == FXAS21000_WHO_AM_I_VALUE) || (pthisGyro->iWhoAmI == FXAS21002_WHO_AM_I_VALUE) || (pthisGyro->iWhoAmI == FXAS21002_WHO_AM_I_VALUE_ENG);
@@ -411,7 +363,7 @@ int8 FXAS2100X_Init(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthisGyro
 		// will never happen
 		break;
 	}
-
+*/
 	return status;
 }
 
@@ -419,15 +371,14 @@ int8 FXAS2100X_Init(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthisGyro
 // sensor read over I2C
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 // read FXAS2100X gyro data over I2C
-int8 FXAS2100X_ReadData(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthisGyro)
+
+int8 LSM9DS0_ReadData(struct GyroSensor *pthisGyro, struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
 {
 	uint8 I2C_Buffer[6];	// I2C read buffer
-	int8 status;			// I2C transaction status
+	int8 status = 0;			// I2C transaction status
 	int8 i;					// scratch
-
+/*
 	// read the six sequential sensor output bytes
 	status = ReadI2CBytes(DeviceDataPtr, FXAS2100X_I2C_ADDR, FXAS2100X_DATA_REG, I2C_Buffer, 6);
 
@@ -443,7 +394,34 @@ int8 FXAS2100X_ReadData(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthis
 
 	// apply the HAL
 	ApplyGyroHAL(pthisGyro);
+*/
+	return status;
+}
 
+
+// read FXAS2100X gyro data over I2C
+int8 FXAS2100X_ReadData(void *DeviceDataPtr, struct GyroSensor *pthisGyro)
+{
+	uint8 I2C_Buffer[6];	// I2C read buffer
+	int8 status = 0;			// I2C transaction status
+	int8 i;					// scratch
+/*
+	// read the six sequential sensor output bytes
+	status = ReadI2CBytes(DeviceDataPtr, FXAS2100X_I2C_ADDR, FXAS2100X_DATA_REG, I2C_Buffer, 6);
+
+	// process the three channels
+	for (i = CHX; i <= CHZ; i++)
+	{
+		// place the 6 bytes read into the gyroscope structures
+		pthisGyro->iYs[i] = (I2C_Buffer[2 * i] << 8) | I2C_Buffer[2 * i + 1];
+
+		// check for -32768 since this value cannot be negated in a later HAL operation
+		if (pthisGyro->iYs[i] == -32768) pthisGyro->iYs[i]++;
+	}
+
+	// apply the HAL
+	ApplyGyroHAL(pthisGyro);
+*/
 	return status;
 }
 
@@ -525,7 +503,7 @@ void ApplyGyroHAL(struct GyroSensor *pthisGyro)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // initialize BlueRadios BR-LE4.0-D2A Bluetooth module
-void BlueRadios_Init(LDD_TDeviceData *DeviceDataPtr)
+void BlueRadios_Init()
 {
 	uint16 ilen;		// command string length
 
@@ -535,13 +513,14 @@ void BlueRadios_Init(LDD_TDeviceData *DeviceDataPtr)
 	// 0: disconnected mode is command mode
 	// \r: carriage return escape sequence
 	// note: UART_A is the UART connected to the Bluetooth module
+	/*
 	strcpy((char *)sUARTOutputBuffer, "ATSRM,2,0\r");
 	ilen = strlen((char *)sUARTOutputBuffer);
 	UART_A_SendBlock(DeviceDataPtr, sUARTOutputBuffer, ilen);
 
 	// wait until all characters are transmitted over UART_A
 	while (UART_A_GetSentDataNum(DeviceDataPtr) != ilen);
-
+*/
 	return;
 }
 
@@ -592,7 +571,7 @@ void sBufAppendItem(uint8* pDest, uint32* pIndex, uint8* pSource, uint16 iBytesT
 }
 
 // set packets out over UART_A to shield / Bluetooth module and over UART_B to OpenSDA / USB
-void CreateAndSendPacketsViaUART(LDD_TDeviceData *DeviceDataPtr_A, LDD_TDeviceData *DeviceDataPtr_B)
+void CreateAndSendPacketsViaUART(void *DeviceDataPtr_A, void *DeviceDataPtr_B)
 {
 	struct fquaternion fq;					// quaternion to be transmitted
 	float ftmp;								// scratch
@@ -609,7 +588,7 @@ void CreateAndSendPacketsViaUART(LDD_TDeviceData *DeviceDataPtr_A, LDD_TDeviceDa
 	int16 i, j, k;							// general purpose
 	static int16 MagneticPacketID = 0;	 	// magnetic packet number
 	static uint8 iPacketNumber = 0; 		// packet number
-
+/*
 #ifdef UART_OFF
 	// enable full STOP mode
 	SCB_SCR |= SCB_SCR_SLEEPDEEP_MASK; 
@@ -618,7 +597,7 @@ void CreateAndSendPacketsViaUART(LDD_TDeviceData *DeviceDataPtr_A, LDD_TDeviceDa
 	// disable full STOP mode
 	SCB_SCR &= (~SCB_SCR_SLEEPDEEP_MASK); 
 #endif
-
+*/
 	// update the assumed 1MHz time stamp counter 
 	iTimeStamp += (1000000 * OVERSAMPLE_RATIO) / SENSORFS;
 
@@ -1347,9 +1326,9 @@ void CreateAndSendPacketsViaUART(LDD_TDeviceData *DeviceDataPtr_A, LDD_TDeviceDa
 	// the final iIndex++ gives the number of bytes to transmit which is one more than
 	// the last index in the buffer. this function is non-blocking
 	// ********************************************************************************
-
+/*
 	UART_A_SendBlock(DeviceDataPtr_A, sUARTOutputBuffer, iIndex);
 	UART_B_SendBlock(DeviceDataPtr_B, sUARTOutputBuffer, iIndex);
-
+*/
 	return;
 }

@@ -34,13 +34,12 @@
 #include "time.h"
 #include "string.h"
 
-#include "build.h"
 #include "types.h"
 #include "fusion.h"
 #include "orientation.h"
 #include "magnetic.h"
 #include "matrix.h"
-#include "mqx_tasks.h"
+#include "rtos_tasks.h"
 #include "approximations.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

@@ -34,7 +34,6 @@
 #include "time.h"
 #include "string.h"
 
-#include "build.h"
 #include "types.h"
 #include "orientation.h"
 #include "matrix.h"

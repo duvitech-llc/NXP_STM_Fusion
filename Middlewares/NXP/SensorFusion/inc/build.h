@@ -48,9 +48,14 @@
 #define FRDM_KL02Z     		13
 #define FRDM_KE02Z     		14
 #define FRDM_KE06Z     		15
+#define STM_LSM9DS     		16
 // spare 16 to 31 inclusive
 
 // define PCBs: only used i) to detect invalid build and ii) specify rotating PCB graphic and iii) clock rates
+#ifdef USE_LSM9DS0
+#define THIS_KINETIS    STM_LSM9DS
+#define FTM_INCLK_HZ		1000000	
+#endif
 #ifdef KL25Z
 #define THIS_KINETIS       	FRDM_KL25Z
 #define FTM_INCLK_HZ		1000000	
