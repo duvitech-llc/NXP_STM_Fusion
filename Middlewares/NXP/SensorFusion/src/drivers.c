@@ -41,151 +41,42 @@
 #include "drivers.h"
 #include "magnetic.h"
 #include "rtos_tasks.h"
+#include "LSM9DS0.h"
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// low level I2C drivers
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// write a byte to specified I2C sensor and register
-int8 WriteI2CByte(LDD_TDeviceData *DeviceDataPtr, uint8 I2CAddress, uint8 I2CRegister, uint8 I2CData)
-{
-	LDD_I2C_TErrorMask I2C_Error;
-	LDD_I2C_TBusState I2C_BusState;		
-	uint8 I2C_Buffer[2];
-
-	// configure the I2C master logic to use selected slave address
-	while (I2C_SelectSlaveDevice(DeviceDataPtr, LDD_I2C_ADDRTYPE_7BITS, I2CAddress) != ERR_OK)
-		;
-
-	// set up the buffer and send (with stop sequence)
-	I2C_Buffer[0] = I2CRegister;
-	I2C_Buffer[1] = I2CData;
-	if (I2C_MasterSendBlock(DeviceDataPtr, I2C_Buffer, 2, LDD_I2C_SEND_STOP) != ERR_OK)
-		return false;		
-
-	// idle until error or transmission complete 
-	do
-	{
-		I2C_GetError(DeviceDataPtr, &I2C_Error);
-	} while (!(I2C_Error || I2C_MasterGetBlockSentStatus(DeviceDataPtr)));
-
-	// make sure the stop sequence has been transmitted and the bus is idle
-	do
-	{
-		I2C_CheckBus(DeviceDataPtr, &I2C_BusState);
-	} while (I2C_BusState != LDD_I2C_IDLE);
-
-	return (I2C_Error == ERR_OK);
-}
-
-// read an array of bytes from a specified I2C sensor and start register
-int8 ReadI2CBytes(LDD_TDeviceData *DeviceDataPtr, uint8 I2CAddress, uint8 I2CRegister, uint8 *I2C_Buffer, uint8 nbytes)
-{
-	LDD_I2C_TErrorMask I2C_Error;
-	LDD_I2C_TBusState I2C_BusState;		
-
-	// configure the I2C master logic to use selected slave address
-	while (I2C_SelectSlaveDevice(DeviceDataPtr, LDD_I2C_ADDRTYPE_7BITS, I2CAddress) != ERR_OK)
-		;
-
-	// write the start register address (no stop sequence)
-	I2C_Buffer[0] = I2CRegister;
-	if (I2C_MasterSendBlock(DeviceDataPtr, I2C_Buffer, 1, LDD_I2C_NO_SEND_STOP) != ERR_OK)
-		return false;
-
-	// loop until error or transmission complete
-	do
-	{
-		I2C_GetError(DeviceDataPtr, &I2C_Error);
-	} while (!(I2C_Error || I2C_MasterGetBlockSentStatus(DeviceDataPtr)));
-
-	// send restart and requested number of data bytes (with stop sequence)
-	if (I2C_MasterReceiveBlock(DeviceDataPtr, I2C_Buffer, nbytes, LDD_I2C_SEND_STOP) != ERR_OK)
-		return false;
-
-	// loop until error or transmission complete
-	do
-	{
-		I2C_GetError(DeviceDataPtr, &I2C_Error);
-	} while (!(I2C_Error || I2C_MasterGetBlockReceivedStatus(DeviceDataPtr)));
-
-	// make sure the stop sequence has been transmitted and the bus is idle
-	do
-	{
-		I2C_CheckBus(DeviceDataPtr, &I2C_BusState);
-	} while (I2C_BusState != LDD_I2C_IDLE);
-
-	return (I2C_Error == ERR_OK);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// sensor initialization over I2C
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// initialize MPL3115 pressure and temperature sensor (512ms or approx 2Hz ODR)
-int8 MPL3115_Init(LDD_TDeviceData *DeviceDataPtr, struct PressureSensor *pthisPressure)
+// initialize LSM9DS0 accelerometer plus magnetometer sensor (hybrid mode 200Hz ODR for both sensors)
+int8 LSM9DS0_Init(struct GyroSensor *pthisGyro, struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
 {
 	int8 status;		// I2C transaction status
+	uint8_t xmWhoAmI;
+	uint8_t gWhoAmI;
+	uint16_t iWhoAmI;		// sensor WhoAmI
 
+			
+	LSM_InitChip();
+	xmWhoAmI = LSM_XM_Whoami();
+	gWhoAmI = LSM_GYRO_Whoami();
+	iWhoAmI = xmWhoAmI<<8 | gWhoAmI;
+	
 	// check the WHOAMI register for the correct value and return immediately if invalid
-	status = ReadI2CBytes(DeviceDataPtr, MPL3115_I2C_ADDR, MPL3115_WHO_AM_I, &(pthisPressure->iWhoAmI), 1);
-	status &= (pthisPressure->iWhoAmI == MPL3115_WHO_AM_I_VALUE);
-	if (!status)
+  // should be 0x49D4
+	printf("WHO_AM_I(XM,G) is: 0x%04X\n\r", iWhoAmI);
+	if(iWhoAmI != 0x49D4)
 	{
-		pthisPressure->iWhoAmI = 0;
+		// error
+		//Error_Handler(1);
 		return status;
 	}
-
-	// write 0000 0000 = 0x00 to MPL3115_CTRL_REG1 to place the MPL3115 in Standby
-	// [7]: ALT=0
-	// [6]: RAW=0 
-	// [5-3]: OS=000 
-	// [2]: RST=0
-	// [1]: OST=0
-	// [0]: SBYB=0 to enter standby
-	status &= WriteI2CByte(DeviceDataPtr, MPL3115_I2C_ADDR, MPL3115_CTRL_REG1, 0x00);
-
-	// alternative for barometer mode
-	// write 0011 1001 = 0x39 to configure MPL3115 and enter Active mode
-	// [7]: ALT=0 for pressure measurements
-
-	// write 1011 1001 = 0xB9 to configure MPL3115 and enter Active mode
-	// [7]: ALT=1 for altitude measurements
-	// [6]: RAW=0 to disable raw measurements
-	// [5-3]: OS=111 for OS ratio=128 and 512ms output interval
-	// [2]: RST=0 do not enter reset
-	// [1]: OST=0 do not initiate a reading
-	// [0]: SBYB=1 to enter active mode
-	status &= WriteI2CByte(DeviceDataPtr, MPL3115_I2C_ADDR, MPL3115_CTRL_REG1, 0xB9);
-
-	// store the gain terms in the pressure structure
-#define MPL3115_MPERCOUNT 0.0000152587890625F		// 1/65536 fixed range for MPL3115	
-#define MPL3115_CPERCPOUNT 0.00390625F				// 1/256 fixed range for MPL3115
-	pthisPressure->fmPerCount = MPL3115_MPERCOUNT;
-	pthisPressure->fCPerCount = MPL3115_CPERCPOUNT;
-
-	return status;
-}
-
-// initialize FXOS8700 accelerometer plus magnetometer sensor (hybrid mode 200Hz ODR for both sensors)
-int8 FXOS8700_Init(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
-{
-	int8 status;		// I2C transaction status
-	uint8 iWhoAmI;		// sensor WhoAmI
-
-	// check the WHOAMI register for the correct value and return immediately if invalid
-	status = ReadI2CBytes(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_WHO_AM_I, &iWhoAmI, 1);
-	status &= (iWhoAmI == FXOS8700_WHO_AM_I_VALUE) || (iWhoAmI == FXOS8700_WHO_AM_I_VALUE_ENG) || (iWhoAmI == FXOS8701_WHO_AM_I_VALUE);
-	if (!status)
-	{
-		pthisAccel->iWhoAmI = pthisMag->iWhoAmI = 0;
-		return status;
+	else{
+		pthisAccel->iWhoAmI = pthisMag->iWhoAmI = xmWhoAmI;
+		pthisGyro->iWhoAmI = gWhoAmI;
 	}
-	else
-	{
-		pthisAccel->iWhoAmI = pthisMag->iWhoAmI = iWhoAmI;
-	}
-
+	
+	// initialize the sensor components
+	LSM_Mag_Init();
+	LSM_Acc_Init();
+	LSM_Gyro_Init();
+	
 	// write 0000 0000 = 0x00 to CTRL_REG1 to place FXOS8700 into standby
 	// [7-1] = 0000 000
 	// [0]: active=0
@@ -528,159 +419,7 @@ int8 FXAS2100X_Init(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthisGyro
 // sensor read over I2C
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// read MPL3115 pressure sensor over I2C
-int8 MPL3115_ReadData(LDD_TDeviceData *DeviceDataPtr, struct PressureSensor *pthisPressure)
-{
-	uint8 I2C_Buffer[5];	// I2C read buffer
-	int8 status;			// I2C transaction status
 
-	// read the five sequential sensor output bytes
-	status = ReadI2CBytes(DeviceDataPtr, MPL3115_I2C_ADDR, MPL3115_OUT_P_MSB, I2C_Buffer, 5);
-
-	// place the read buffer into the 32 bit altitude and 16 bit temperature
-	pthisPressure->iH = (I2C_Buffer[0] << 24) | (I2C_Buffer[1] << 16) | (I2C_Buffer[2] << 8);
-	pthisPressure->iT = (I2C_Buffer[3] << 8) | I2C_Buffer[4];
-
-	// this line only valid if the MPL3115 is initialized to pressure mode
-	pthisPressure->iP = (I2C_Buffer[0] << 16) | (I2C_Buffer[1] << 8) | (I2C_Buffer[2] << 0);
-
-	// convert from counts to metres altitude and C
-	pthisPressure->fH = (float) pthisPressure->iH * pthisPressure->fmPerCount;
-	pthisPressure->fT = (float) pthisPressure->iT * pthisPressure->fCPerCount;
-
-	return status;
-}
-
-// read FXOS8700 accelerometer over I2C
-int8 FXOS8700_ReadAccData(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel)
-{
-	uint8 I2C_Buffer[6];	// I2C read buffer
-	int8 status;			// I2C transaction status
-	int8 i;					// scratch
-
-	// read the six sequential sensor accelerometer output bytes
-	status = ReadI2CBytes(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_OUT_X_MSB, I2C_Buffer, 6);
-
-	// process the three channels
-	for (i = CHX; i <= CHZ; i++)
-	{
-		// place the 6 bytes read into the accelerometer structure
-		pthisAccel->iGs[i] = (I2C_Buffer[2 * i] << 8) | I2C_Buffer[2 * i + 1];
-
-		// check for -32768 since this value cannot be negated in a later HAL operation
-		if (pthisAccel->iGs[i] == -32768) pthisAccel->iGs[i]++;
-	}
-
-	// apply the HAL
-	ApplyAccelHAL(pthisAccel);
-
-
-	return status;
-}
-
-// read FXLS8952 accelerometer data over I2C
-int8 FXLS8952_ReadData(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel)
-{
-	uint8 I2C_Buffer[6];	// I2C read buffer
-	int8 status;			// I2C transaction status
-	int8 i;					// scratch
-
-	// read the six sequential sensor output bytes
-	status = ReadI2CBytes(DeviceDataPtr, FXLS8952_I2C_ADDR, FXLS8952_OUT_X_LSB, I2C_Buffer, 6);
-
-	// process the three channels
-	for (i = CHX; i <= CHZ; i++)
-	{
-		// place the 6 bytes read into the 16 bit accelerometer structure
-		pthisAccel->iGs[i] = (I2C_Buffer[2 * i + 1] << 8) | I2C_Buffer[2 * i];
-
-		// check for -32768 since this value cannot be negated in a later HAL operation
-		if (pthisAccel->iGs[i] == -32768) pthisAccel->iGs[i]++;
-	}
-
-	// apply the HAL
-	ApplyAccelHAL(pthisAccel);
-
-	return status;
-}
-
-// read MMA8652 accelerometer data over I2C
-int8 MMA8652_ReadData(LDD_TDeviceData *DeviceDataPtr, struct AccelSensor *pthisAccel)
-{
-	uint8 I2C_Buffer[6];	// I2C read buffer
-	int8 status;			// I2C transaction status
-	int8 i;					// scratch
-
-	// read the six sequential sensor output bytes
-	status = ReadI2CBytes(DeviceDataPtr, MMA8652_I2C_ADDR, MMA8652_OUT_X_MSB, I2C_Buffer, 6);
-
-	// process the three channels
-	for (i = CHX; i <= CHZ; i++)
-	{
-		// place the 6 bytes read into the 16 bit accelerometer structure
-		pthisAccel->iGs[i] = (I2C_Buffer[2 * i] << 8) | I2C_Buffer[2 * i + 1];
-
-		// check for -32768 since this value cannot be negated in a later HAL operation
-		if (pthisAccel->iGs[i] == -32768) pthisAccel->iGs[i]++;
-	}
-
-	// apply the HAL
-	ApplyAccelHAL(pthisAccel);
-
-	return status;
-}
-
-// read FXOS8700 magnetometer over I2C
-int8 FXOS8700_ReadMagData(LDD_TDeviceData *DeviceDataPtr, struct MagSensor *pthisMag)
-{
-	uint8 I2C_Buffer[6];	// I2C read buffer
-	int8 status;			// I2C transaction status
-	int8 i;					// scratch
-
-	// read the six sequential magnetometer output bytes
-	status = ReadI2CBytes(DeviceDataPtr, FXOS8700_I2C_ADDR, FXOS8700_M_OUT_X_MSB, I2C_Buffer, 6);
-
-	// process the three channels
-	for (i = CHX; i <= CHZ; i++)
-	{
-		// place the 6 bytes read into the magnetometer structure
-		pthisMag->iBs[i] = (I2C_Buffer[2 * i] << 8) | I2C_Buffer[2 * i + 1];
-
-		// check for -32768 since this value cannot be negated in a later HAL operation
-		if (pthisMag->iBs[i] == -32768) pthisMag->iBs[i]++;
-	}
-
-	// apply the HAL
-	ApplyMagHAL(pthisMag);
-
-	return status;
-}
-
-// read MAG3110 magnetometer data over I2C
-int8 MAG3110_ReadData(LDD_TDeviceData *DeviceDataPtr, struct MagSensor *pthisMag)
-{
-	uint8 I2C_Buffer[6];	// I2C read buffer
-	int8 status;			// I2C transaction status
-	int8 i;					// scratch
-
-	// read the six sequential sensor output bytes
-	status = ReadI2CBytes(DeviceDataPtr, MAG3110_I2C_ADDR, MAG3110_OUT_X_MSB, I2C_Buffer, 6);
-
-	// process the three channels
-	for (i = CHX; i <= CHZ; i++)
-	{
-		// place the 6 bytes read into the 16 bit accelerometer structure
-		pthisMag->iBs[i] = (I2C_Buffer[2 * i] << 8) | I2C_Buffer[2 * i + 1];
-
-		// check for -32768 since this value cannot be negated in a later HAL operation
-		if (pthisMag->iBs[i] == -32768) pthisMag->iBs[i]++;
-	}
-
-	// apply the magnetometer HAL
-	ApplyMagHAL(pthisMag);
-
-	return status;
-}
 
 // read FXAS2100X gyro data over I2C
 int8 FXAS2100X_ReadData(LDD_TDeviceData *DeviceDataPtr, struct GyroSensor *pthisGyro)

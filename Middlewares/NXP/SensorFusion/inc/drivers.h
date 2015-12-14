@@ -97,8 +97,8 @@
 #define FXLS8952_WHO_AM_I_VALUE			0x72
 
 // functions defined in drivers.c
-int8 LSM9DS0_Init(void *DeviceDataPtr, struct GyroSensor *pthisGyro, struct PressureSensor *pthisPressure);
-int8 LSM9DS0_ReadData(void *DeviceDataPtr, struct GyroSensor *pthisGyro, struct PressureSensor *pthisPressure);
+int8 LSM9DS0_Init(struct GyroSensor *pthisGyro, struct AccelSensor *pthisAccel, struct MagSensor *pthisMag);
+int8 LSM9DS0_ReadData(struct GyroSensor *pthisGyro, struct AccelSensor *pthisAccel, struct MagSensor *pthisMag);
 void ApplyAccelHAL(struct AccelSensor *pthisAccel);
 void ApplyMagHAL(struct MagSensor *pthisMag);
 void ApplyGyroHAL(struct GyroSensor *pthisGyro);

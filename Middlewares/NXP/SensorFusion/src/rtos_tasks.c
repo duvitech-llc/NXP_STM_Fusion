@@ -161,26 +161,11 @@ void RdSensData_task(uint32_t task_init_data)
 
 	// initialize the physical sensors over I2C and hang on error to keep the red LED illuminated
 	// with exception of MPL3115 (so as to support 9AXIS board option which doesn't populate MPL3115)
-	LED_YELLOW_ClrVal(NULL);		// red on
-	LED_GREEN_SetVal(NULL);		// green off
+	LED_YELLOW_ClrVal();		// red on
+	LED_GREEN_SetVal();		// green off
 
-#if defined USE_MPL3115
-	MPL3115_Init(I2C_DeviceData, &thisPressure);
-#endif
-#if defined USE_FXOS8700
-	while (!FXOS8700_Init(I2C_DeviceData, &thisAccel, &thisMag));
-#endif
-#if defined USE_FXAS2100X
-	while (!FXAS2100X_Init(I2C_DeviceData, &thisGyro));
-#endif
-#if defined USE_MMA8652
-	while (!MMA8652_Init(I2C_DeviceData, &thisAccel));
-#endif
-#if defined USE_FXLS8952
-	while (!FXLS8952_Init(I2C_DeviceData, &thisAccel));
-#endif	
-#if defined USE_MAG3110
-	while (!MAG3110_Init(I2C_DeviceData, &thisMag));
+#if defined USE_LSM9DS0
+	while (!LSM9DS0_Init(&thisGyro, &thisAccel, &thisMag));
 #endif
 
 	// initialize magnetometer data structure
@@ -191,7 +176,7 @@ void RdSensData_task(uint32_t task_init_data)
 #endif
 
 	// set red LED off now all required sensors are detected
-	LED_YELLOW_SetVal(NULL);		
+	LED_YELLOW_SetVal();		
 
 	// initialize user high frequency (typically 200Hz) task
 	UserHighFrequencyTaskInit();

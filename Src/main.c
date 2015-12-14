@@ -37,6 +37,17 @@
 
 /* USER CODE BEGIN Includes */
 
+#include <stdio.h>
+
+#ifdef __GNUC__
+	/* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
+		 set to 'Yes') calls __io_putchar() */
+	#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+	#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+	
+	
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -71,6 +82,20 @@ void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN 0 */
 
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the EVAL_COM1 and Loop until the end of transmission */
+//portENTER_CRITICAL();
+	//osSemaphoreWait(serialConsoleSynchHandle, osWaitForever);		
+	
+	HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1,10); 
+	//osSemaphoreRelease(serialConsoleSynchHandle);
+	
+//portEXIT_CRITICAL();
+  return ch;
+}
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -96,6 +121,8 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
+	printf("\n\rDuvitech \302\2512015\n\r");
+	printf("Sensor Fusion Demo\n\r");
 
   /* USER CODE END 2 */
 
